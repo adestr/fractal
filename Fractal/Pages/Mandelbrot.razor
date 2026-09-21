@@ -1,0 +1,56 @@
+﻿@page "/mandelbrot"
+@inject IJSRuntime JS
+
+<h3>Mandelbrot</h3>
+
+<div id="mandelbrot-tiles">
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+  <MandelbrotTile Size="@TileSize" />
+</div>
+
+@code {
+    private float DefaultMinReal { get; set; } = -2.5f;
+
+    private float DefaultMaxReal { get; set; } = 1.0f;
+
+    private float DefaultMinImaginary { get; set; } = -1.5f;
+
+    private float DefaultMaxImaginary { get; set; } = 1.5f;
+
+    private int TileSize { get; set; } = 100;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var dimensions = await JS.InvokeAsync<(int width, int height)>("getSize", DotNetObjectReference.Create(this));
+        Console.WriteLine($"Mandelbrot component initialized at {dimensions.width}x{dimensions.height}.");
+        //CalculateBounds();
+
+        await base.OnInitializedAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+    }
+
+    /// <summary>
+    /// Calculates the bounds of the Mandelbrot set based on the screen dimensions.
+    /// </summary>
+    /// <remarks>
+    /// Ensures that we will fit the default min/max value inside the viewport.
+    /// </remarks>
+    private void CalculateBounds()
+    {
+        throw new NotImplementedException();
+    }
+}
