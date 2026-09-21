@@ -1,0 +1,19 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "module": "es2022",
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "es2022"
+  },
+  "include": [
+    "Components/**/*.ts",
+    "Pages/**/*.ts",
+    "Services/**/*.ts",
+    "Workers/**/*.ts"
+  ],
+  // There is a secondary configuration that handles the scripts folder
+  "exclude": ["node_modules", "wwwroot", "Scripts"]
+}

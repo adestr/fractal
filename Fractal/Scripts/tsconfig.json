@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../wwwroot/Scripts"
+  },
+  "include": ["**/*.ts"],
+  // Exclude nothing, because we're only affecting the scripts folder with this configuration
+  "exclude": []
+}
