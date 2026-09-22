@@ -29,15 +29,26 @@ public partial class MandelbrotCalculation
         return result;
     }
 
-    private static int CalculatePoint(double x, double y, int maxIterations)
+    /// <summary>
+    /// Calculates the number of iterations for a given point in the complex plane to determine if it belongs to the Mandelbrot set.
+    /// </summary>
+    /// <param name="real">The real part of the complex number.</param>
+    /// <param name="imaginary">The imaginary part of the complex number.</param>
+    /// <param name="maxIterations">The maximum number of iterations to perform.</param>
+    /// <remarks>
+    /// For each iteration, the function is <c>z_n = z_{n-1}^2 + c</c> where <c>c</c> is the complex number represented by the <paramref name="real"/> and <paramref name="imaginary"/> parameters.
+    /// </remarks>
+    /// <returns>The number of iterations it took for the point to escape, or maxIterations if it did not escape.</returns>
+    private static int CalculatePoint(double real, double imaginary, int maxIterations)
     {
         double zx = 0.0;
         double zy = 0.0;
         int iterations = 0;
         while (zx * zx + zy * zy < 4.0 && iterations < maxIterations)
         {
-            double temp = zx * zx - zy * zy + x;
-            zy = 2.0 * zx * zy + y;
+            // Calculate the next iteration of z = z^2 + c
+            double temp = zx * zx - zy * zy + real;
+            zy = 2.0 * zx * zy + imaginary;
             zx = temp;
             iterations++;
         }
