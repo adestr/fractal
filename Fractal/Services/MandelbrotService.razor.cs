@@ -42,22 +42,22 @@ public partial class MandelbrotService
     [return: JSMarshalAs<JSType.Promise<JSType.Object>>]
     internal static partial Task<JSObject> InitialiseWorkerAsync();
 
-    public static async Task<int[]> CalculateAsync(int nr, int ni, double rMin, double rMax, double iMin, double iMax)
+    public static async Task<int[]> CalculateAsync(string elementId, int nr, int ni, double rMin, double rMax, double iMin, double iMax)
     {
         int batch = counter++;
         var watch = Stopwatch.StartNew();
         Console.WriteLine($"[{batch}] Sending request to calculate Mandelbrot heights for range ({rMin} {iMin}i, {rMax} {iMax}i) in {watch.ElapsedMilliseconds} ms");
 
-        var jsObject = await Mandelbrot(batch, nr, ni, rMin, rMax, iMin, iMax);
+        var jsObject = await Mandelbrot(elementId, batch, nr, ni, rMin, rMax, iMin, iMax);
+
         watch.Stop();
         Console.WriteLine($"[{batch}] Received Mandelbrot heights for range ({rMin} {iMin}i, {rMax} {iMax}i) in {watch.ElapsedMilliseconds} ms");
+        watch.Start();
 
-        var array = UnwrapJSObjectAsByteArray(jsObject);
+        var array = UnwrapJSObjectAsArraySegment(jsObject);
         Console.WriteLine($"[{batch}] Unwrapped Mandelbrot heights for range ({rMin} {iMin}i, {rMax} {iMax}i) in {watch.ElapsedMilliseconds} ms");
 
-        var decompressed = Compression.Decompress(array);
-        Console.WriteLine($"[{batch}] Decompressed Mandelbrot heights for range ({rMin} {iMin}i, {rMax} {iMax}i) in {watch.ElapsedMilliseconds} ms");
-        return decompressed;
+        return array;
     }
 
     /// <summary>
@@ -76,6 +76,7 @@ public partial class MandelbrotService
     [JSImport("mandelbrot", ModuleName)]
     [return: JSMarshalAs<JSType.Promise<JSType.Object>>]
     internal static partial Task<JSObject> Mandelbrot(
+        string elementId,
         int requestId,
         int nr,
         int ni,
@@ -85,7 +86,11 @@ public partial class MandelbrotService
         double iMax
     );
 
-    [JSImport("unwrapJsObjectAsByteArray", ModuleName)]
-    [return: JSMarshalAs<JSType.Array<JSType.Number>>]
-    internal static partial byte[] UnwrapJSObjectAsByteArray(JSObject jsObject);
+    [JSImport("unwrapJsObject", ModuleName)]
+    //[return: JSMarshalAs<JSType.MemoryView>]
+    internal static partial int[] UnwrapJSObjectAsArraySegment(JSObject jsObject);
+
+    //[JSImport("unwrapJsObjectAsByteArray", ModuleName)]
+    //[return: JSMarshalAs<JSType.Array<JSType.Number>>]
+    //internal static partial byte[] UnwrapJSObjectAsByteArray(JSObject jsObject);
 }

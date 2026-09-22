@@ -8,13 +8,16 @@ namespace Fractal.Workers;
 public partial class MandelbrotCalculation
 {
     [JSExport]
-    public static byte[] Calculate(int requestId, int x, int y, double realMin, double realMax, double imaginaryMin, double imaginaryMax)
+    [return: JSMarshalAs<JSType.MemoryView>]
+    public static ArraySegment<int> Calculate(int requestId, int x, int y, double realMin, double realMax, double imaginaryMin, double imaginaryMax)
     {
         const int maxIterations = 200;
         var watch = Stopwatch.StartNew();
         Console.WriteLine($"[{requestId}] Calculating Mandelbrot heights for tile of size ({x}, {y}) with real range ({realMin}, {realMax}) and imaginary range ({imaginaryMin}, {imaginaryMax}) with max iterations {maxIterations}");
 
-        int[] result = new int[x * y];
+        // We could be using ushort here, but the type mappings currently only support ArraySegments of int, byte and double.
+        // https://learn.microsoft.com/en-us/aspnet/core/client-side/dotnet-interop/?view=aspnetcore-10.0#type-mappings
+        var result = new int[x * y];
 
         double deltaReal = (realMax - realMin) / x;
         double deltaImaginary = (imaginaryMax - imaginaryMin) / y;
@@ -24,15 +27,15 @@ public partial class MandelbrotCalculation
             {
                 double real = realMin + (i + 0.5) * deltaReal;
                 double imaginary = imaginaryMin + (j + 0.5) * deltaImaginary;
-                result[i * y + j] = CalculatePoint(real, imaginary, maxIterations);
+                result[i + y * j] = CalculatePoint(real, imaginary, maxIterations);
             }
         }
 
-        var compressed = Compression.Compress(result);
-        Console.WriteLine($"[{requestId}] Compressed Mandelbrot heights from {result.Length * sizeof(int)} bytes to {compressed.Length} bytes");
         Console.WriteLine($"[{requestId}] Finished calculating Mandelbrot heights for range ({realMin} {imaginaryMin}i, {realMax} {imaginaryMax}i) in {watch.ElapsedMilliseconds} ms");
 
-        return compressed;
+        // TODO: Return as ArraySegment<int> instead of int[] to avoid copying the array when returning to JS
+        //return result;
+        return new ArraySegment<int>(result);
     }
 
     /// <summary>

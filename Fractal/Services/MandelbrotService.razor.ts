@@ -78,11 +78,6 @@ function sendRequestToWorker(request: any): Promise<Int32Array> {
   return promise;
 }
 
-function handleReady() {
-  const p = new Promise((resolve, reject) => {
-  });
-}
-
 const createMessageHandler = (i) => (e: MessageEvent) => {
   switch (e.data.status) {
     case "ready":
@@ -135,6 +130,7 @@ export async function initializeWorker() {
  * @returns A promise that resolves to an array representing the Mandelbrot heights for the specified region
  */
 export async function mandelbrot(
+  elementId: string,
   requestId: number,
   nr: number,
   ni: number,
@@ -164,22 +160,51 @@ export async function mandelbrot(
     payload,
   });
 
-  const diff = new Date().getTime() - t;
-  console.log(`[${requestId}] Received Mandelbrot calculation response from worker in ${diff} ms`);
+  const elem = document.getElementById(elementId);
+  if (!elem) {
+    console.error(`Element with ID ${elementId} not found`);
+    return;
+  }
 
-  return Array.from(response);
+  const limit = 200;
+
+  var imageArray = new Uint8ClampedArray(response.length * 4);
+  for (let i = 0; i < response.length; i++) {
+    const h = response[i];
+    const t = (limit - 1.0 * h) / limit;
+    const [r, g, b, a] = h === limit ? [0, 0, 0, 255] : getColour(t);
+    imageArray.set([r, g, b, a], i * 4);
+  }
+
+  var x = new Int32Array(response.buffer);
+    (elem as HTMLCanvasElement).getContext("2d")?.putImageData(new ImageData(imageArray, nr, ni), 0, 0);
+
+  const diff = new Date().getTime() - t;
+  console.log(`[${requestId}] Received Mandelbrot calculation response from worker in ${diff} ms`, response);
+
+  return response;
 }
 
+function getColour(t: number) {
+  const amplification = t < 0.9 ? 255 : 255 * Math.pow((1.0 - t) / 0.1, 2);
+
+  const r = 0.5 + 0.5 * Math.cos(2 * Math.PI * (1.0 * t + 0.00))
+  const g = 0.5 + 0.5 * Math.cos(2 * Math.PI * (1.0 * t + 0.33))
+  const b = 0.5 + 0.5 * Math.cos(2 * Math.PI * (1.0 * t + 0.67))
+  return [r * amplification, g * amplification, b * amplification, 255]
+}
+
+
 /**
- * Unwraps a JSObject into a byte[].
+ * Unwraps a JSObject into whatever C# expects it to be.
  *
  * This works around the fact that it's not currently possible to marshal a promise that resolves
  *  to an array directly from JavaScript to .NET. So, we return a promise which resolves to a
- *  JSObject, then use a synchronous function to unwrap that object into a byte[].
+ *  JSObject, then use a synchronous function to unwrap that object into the desired type.
  *
  * @param jsObject A JSObject reference
- * @returns The exact same object, which C# will interpret as a byte[]
+ * @returns The exact same object, which C# will interpret as the desired type
  */
-export function unwrapJsObjectAsByteArray(jsObject: any) {
+export function unwrapJsObject(jsObject: any) {
   return jsObject;
 }

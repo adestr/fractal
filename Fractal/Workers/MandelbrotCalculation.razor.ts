@@ -61,10 +61,13 @@ self.addEventListener(
           throw new Error(`Unknown message type: ${event.data.type}`);
       }
 
-      self.postMessage({
+      const x = new Int32Array(result.length);
+      result.copyTo(x);
+
+      (self as unknown as Worker).postMessage({
         status: "success",
         requestId: event.data.requestId,
-        result: result,
+        result: x
       });
     } catch (err) {
       self.postMessage({

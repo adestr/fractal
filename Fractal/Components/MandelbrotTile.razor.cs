@@ -1,7 +1,5 @@
 ﻿using Fractal.Services;
 using Microsoft.AspNetCore.Components;
-using SkiaSharp;
-using SkiaSharp.Views.Blazor;
 using System.Runtime.Versioning;
 
 namespace Fractal.Components;
@@ -9,13 +7,9 @@ namespace Fractal.Components;
 [SupportedOSPlatform("browser")]
 public partial class MandelbrotTile
 {
+    private readonly string ElementId = $"mandelbrot-tile-{Guid.NewGuid()}";
+
     public const int DefaultTileSize = 100;
-
-    private const int MaxIterations = 200;
-
-    SKCanvasView? CanvasView { get; set; }
-
-    private SKBitmap? bitmap = null;
 
     /// <summary>
     /// The number of pixels in the width and height of the tile.
@@ -101,47 +95,8 @@ public partial class MandelbrotTile
         await base.OnInitializedAsync();
     }
 
-    private void OnPaintSurface(SKPaintSurfaceEventArgs e)
-    {
-        var canvas = e.Surface.Canvas;
-        if (bitmap == null)
-        {
-            // TODO: Dark mode!
-            canvas.Clear(SKColors.White);
-        }
-        else
-        {
-            canvas.DrawBitmap(bitmap, new SKRect(0, 0, e.Info.Width, e.Info.Height), new SKRect(0, 0, Size, Size), SKSamplingOptions.Default);
-        }
-    }
-
     private async Task RenderTileAsync()
     {
-        if (bitmap == null)
-        {
-            int[] heights = await MandelbrotService.CalculateAsync(Size, Size, RealMin, RealMax, ImaginaryMin, ImaginaryMax);
-
-            SKBitmap tmp = new(Size, Size);
-            for (int i = 0; i < Size; i++)
-            {
-                for (int j = 0; j < Size; j++)
-                {
-                    int height = heights?[i * Size + j] ?? 0;
-                    var (r, g, b) = GetColour(height);
-                    tmp.SetPixel(i, j, new SKColor(r, g, b));
-                }
-            }
-            bitmap = tmp;
-            CanvasView?.Invalidate();
-        }
-    }
-
-    private static (byte r, byte g, byte b) GetColour(int mandelbrotValue)
-    {
-        byte r = (byte)(mandelbrotValue % 256);
-        byte g = (byte)(mandelbrotValue * 2 % 256);
-        byte b = (byte)(mandelbrotValue * 3 % 256);
-
-        return mandelbrotValue < MaxIterations ? (r, g, b) : ((byte)0, (byte)0, (byte)0);
+        await MandelbrotService.CalculateAsync(ElementId, Size, Size, RealMin, RealMax, ImaginaryMin, ImaginaryMax);
     }
 }

@@ -81,6 +81,10 @@ public partial class Mandelbrot
 
         RowCount = yTiles;
         ColumnCount = xTiles;
+
+        //RowCount = 1;
+        //ColumnCount = 1;
+
         Sections = new Section[RowCount, ColumnCount];
 
         for (int i = 0; i < RowCount; i++)
