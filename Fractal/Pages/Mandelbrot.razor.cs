@@ -21,7 +21,7 @@ public partial class Mandelbrot
 
     private Section[,] Sections { get; set; } = new Section[0, 0];
 
-    private float MinReal { get; set; } = -2.5f;
+    private float MinReal { get; set; } = -2.0f;
 
     private float MaxReal { get; set; } = 1.0f;
 
@@ -74,6 +74,35 @@ public partial class Mandelbrot
     /// </remarks>
     private void CalculateBounds()
     {
+        float deltaReal = MaxReal - MinReal;
+        float deltaImaginary = MaxImaginary - MinImaginary;
+        float aspect = deltaReal / deltaImaginary;
+        float clientAspect = 1.0f * ClientSize.Width / ClientSize.Height;
+
+        float ratio = aspect / clientAspect;
+
+        // If ratio is greater than 1, the viewable area will contain more imaginary space
+        // If ratio less than 1, the viewable area will contain more real space
+        var targetDeltaImaginary = ratio > 1 ? deltaImaginary * ratio : deltaImaginary;
+        var targetDeltaReal = ratio > 1 ? deltaReal : deltaReal / ratio;
+
+        var adjustImaginary = (targetDeltaImaginary - deltaImaginary) / 2;
+        var adjustReal = (targetDeltaReal - deltaReal) / 2;
+
+        if (adjustImaginary > 0.01)
+        {
+            Console.WriteLine($"Adjusting imaginary bounds by {adjustImaginary} to fit aspect ratio.");
+            MinImaginary -= adjustImaginary;
+            MaxImaginary += adjustImaginary;
+        }
+
+        if (adjustReal > 0.01)
+        {
+            Console.WriteLine($"Adjusting real bounds by {adjustReal} to fit aspect ratio.");
+            MinReal -= adjustReal;
+            MaxReal += adjustReal;
+        }
+
         int x = ClientSize.Width;
         int y = ClientSize.Height;
         int xTiles = (int)Math.Ceiling((double)x / TileSize);
