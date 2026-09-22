@@ -26,6 +26,18 @@ public partial class MandelbrotService
         await base.OnInitializedAsync();
     }
 
+    public static async Task<int[]> CalculateAsync(int nr,
+        int ni,
+        double rMin,
+        double rMax,
+        double iMin,
+        double iMax
+)
+    {
+        var jsObject = await Mandelbrot(nr, ni, rMin, rMax, iMin, iMax);
+        return UnwrapJSObjectAsIntArray(jsObject);
+    }
+
     /// <summary>
     /// Calculates the Mandelbrot set for the specified region, using a Web Worker, and returns the result as a JSON string.
     /// </summary>
@@ -41,7 +53,7 @@ public partial class MandelbrotService
     /// <returns>A JSON object, which can be unwrapped using <see cref="UnwrapJsObject"/> to obtain an array of the Mandelbrot heights for the specified region</returns>
     [JSImport("mandelbrot", ModuleName)]
     [return: JSMarshalAs<JSType.Promise<JSType.Object>>]
-    public static partial Task<JSObject> CalculateAsync(
+    internal static partial Task<JSObject> Mandelbrot(
         int nr,
         int ni,
         double rMin,
@@ -52,5 +64,5 @@ public partial class MandelbrotService
 
     [JSImport("unwrapJsObjectAsIntArray", ModuleName)]
     [return: JSMarshalAs<JSType.Array<JSType.Number>>]
-    public static partial int[] UnwrapJSObjectAsIntArray(JSObject jsObject);
+    internal static partial int[] UnwrapJSObjectAsIntArray(JSObject jsObject);
 }

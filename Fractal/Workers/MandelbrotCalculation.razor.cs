@@ -9,7 +9,7 @@ public partial class MandelbrotCalculation
     [JSExport]
     public static int[] Calculate(int x, int y, float realMin, float realMax, float imaginaryMin, float imaginaryMax)
     {
-        const int maxIterations = 100;
+        const int maxIterations = 200;
         Console.WriteLine($"Calculating Mandelbrot heights for tile of size ({x}, {y}) with real range ({realMin}, {realMax}) and imaginary range ({imaginaryMin}, {imaginaryMax}) with max iterations {maxIterations}");
 
         int[] result = new int[x * y];

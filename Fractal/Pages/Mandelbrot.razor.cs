@@ -1,20 +1,32 @@
-using System.Runtime.Versioning;
 using Microsoft.JSInterop;
-using Fractal.Services;
-using Microsoft.AspNetCore.Components;
+using System.Runtime.Versioning;
 
 namespace Fractal.Pages;
 
 [SupportedOSPlatform("browser")]
 public partial class Mandelbrot
 {
-    private float DefaultMinReal { get; set; } = -2.5f;
+    private int RowCount { get; set; } = 0;
 
-    private float DefaultMaxReal { get; set; } = 1.0f;
+    private int ColumnCount { get; set; } = 0;
 
-    private float DefaultMinImaginary { get; set; } = -1.5f;
+    private record class Section
+    {
+        public float MinReal { get; set; }
+        public float MaxReal { get; set; }
+        public float MinImaginary { get; set; }
+        public float MaxImaginary { get; set; }
+    }
 
-    private float DefaultMaxImaginary { get; set; } = 1.5f;
+    private Section[,] Sections { get; set; } = new Section[0, 0];
+
+    private float MinReal { get; set; } = -2.5f;
+
+    private float MaxReal { get; set; } = 1.0f;
+
+    private float MinImaginary { get; set; } = -1.5f;
+
+    private float MaxImaginary { get; set; } = 1.5f;
 
     private int TileSize { get; set; } = 100;
 
@@ -32,7 +44,7 @@ public partial class Mandelbrot
         var dimensions = await script.InvokeAsync<Dimensions>("getSize", DotNetObjectReference.Create(this));
         Console.WriteLine($"[initialised] Mandelbrot component initialized at {dimensions.Width}x{dimensions.Height}.");
         ClientSize = dimensions;
-        //CalculateBounds();
+        CalculateBounds();
 
         await base.OnInitializedAsync();
     }
@@ -45,9 +57,9 @@ public partial class Mandelbrot
 
         if (ClientSize.Width != dimensions.Width || ClientSize.Height != dimensions.Height)
         {
-            ClientSize = dimensions;
+            //ClientSize = dimensions;
             //CalculateBounds();
-            StateHasChanged();
+            //StateHasChanged();
         }
 
         await base.OnAfterRenderAsync(firstRender);
@@ -61,6 +73,34 @@ public partial class Mandelbrot
     /// </remarks>
     private void CalculateBounds()
     {
-        throw new NotImplementedException();
+        int x = ClientSize.Width;
+        int y = ClientSize.Height;
+        int xTiles = (int)Math.Ceiling((double)x / TileSize);
+        int yTiles = (int)Math.Ceiling((double)y / TileSize);
+
+        RowCount = yTiles;
+        ColumnCount = xTiles;
+        Sections = new Section[RowCount, ColumnCount];
+
+        for (int i = 0; i < RowCount; i++)
+        {
+            for (int j = 0; j < ColumnCount; j++)
+            {
+                float rmin = MinReal + (j * (MaxReal - MinReal) / ColumnCount);
+                float rmax = MinReal + ((j + 1) * (MaxReal - MinReal) / ColumnCount);
+                float imin = MinImaginary + (i * (MaxImaginary - MinImaginary) / RowCount);
+                float imax = MinImaginary + ((i + 1) * (MaxImaginary - MinImaginary) / RowCount);
+
+                Sections[i, j] = new Section
+                {
+                    MinReal = rmin,
+                    MaxReal = rmax,
+                    MinImaginary = imin,
+                    MaxImaginary = imax
+                };
+            }
+        }
+
+        Console.WriteLine($"Calculating bounds for {xTiles}x{yTiles} tiles.");
     }
 }

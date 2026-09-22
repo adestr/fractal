@@ -1,12 +1,19 @@
 ﻿@page "/mandelbrot"
 @inject IJSRuntime JS
 
-<h3>Mandelbrot</h3>
-
 <div id="mandelbrot-tiles">
+  @for (int i = 0; i < RowCount; i++)
+  {
+    <div class="mandelbrot-row">
+      @for (int j = 0; j < ColumnCount; j++)
+      {
+        var section = Sections[i, j];
         <MandelbrotTile Size="@TileSize"
-                        RealMin="@DefaultMinReal"
-                        RealMax="@DefaultMaxReal"
-                        ImaginaryMin="@DefaultMinImaginary"
-                        ImaginaryMax="@DefaultMaxImaginary" />      
+                        RealMin="@section.MinReal"
+                        RealMax="@section.MaxReal"
+                        ImaginaryMin="@section.MinImaginary"
+                        ImaginaryMax="@section.MaxImaginary" />
+      }
+    </div>
+  }
 </div>

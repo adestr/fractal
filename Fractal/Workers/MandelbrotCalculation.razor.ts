@@ -31,8 +31,6 @@ interface MandelbrotMessage extends FractalMessage {
 self.addEventListener(
   "message",
   async (event: MessageEvent<MandelbrotMessage>) => {
-    console.log("Received message from main thread:", event.data);
-
     try {
       if (!assemblyExports) {
         throw new Error(startupError || "Worker exports could not be loaded");
@@ -41,7 +39,6 @@ self.addEventListener(
       let result: any;
       switch (event.data.type) {
         case "mandelbrot":
-          console.log("Received Mandelbrot calculation request:", event.data);
           const p = event.data.payload;
           result =
             assemblyExports.Fractal.Workers.MandelbrotCalculation.Calculate(
@@ -57,10 +54,6 @@ self.addEventListener(
         default:
           throw new Error(`Unknown message type: ${event.data.type}`);
       }
-
-      console.log("Sending result back to main thread:", result);
-      console.log("Request ID:", event.data.requestId);
-      console.log("Response was:", result);
 
       self.postMessage({
         status: "success",

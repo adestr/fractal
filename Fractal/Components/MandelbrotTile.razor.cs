@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Components;
 using SkiaSharp;
 using SkiaSharp.Views.Blazor;
-using System.Text.Json;
 using System.Runtime.Versioning;
 
 namespace Fractal.Components;
@@ -22,30 +21,35 @@ public partial class MandelbrotTile
     /// </summary>
     [Parameter]
     public int Size { get; set; } = DefaultTileSize;
+    private int _renderedSize;
 
     /// <summary>
     /// The real part (x-axis) minimum value of the Mandelbrot set to render.
     /// </summary>
     [Parameter]
     public float RealMin { get; set; }
+    private float _renderedMinReal;
 
     /// <summary>
     /// The real part (x-axis) maximum value of the Mandelbrot set to render.
     /// </summary>
     [Parameter]
     public float RealMax { get; set; }
+    private float _renderedMaxReal;
 
     /// <summary>
     /// The imaginary part (y-axis) minimum value of the Mandelbrot set to render.
     /// </summary>
     [Parameter]
     public float ImaginaryMin { get; set; }
+    private float _renderedMinImaginary;
 
     /// <summary>
     /// The imaginary part (y-axis) maximum value of the Mandelbrot set to render.
     /// </summary>
     [Parameter]
     public float ImaginaryMax { get; set; }
+    private float _renderedMaxImaginary;
 
     float pixelWidth;
     float pixelHeight;
@@ -64,6 +68,23 @@ public partial class MandelbrotTile
         }
 
         await base.OnParametersSetAsync();
+    }
+
+    protected override bool ShouldRender()
+    {
+        if (_renderedSize != Size || _renderedMinReal != RealMin || _renderedMaxReal != RealMax || _renderedMinImaginary != ImaginaryMin || _renderedMaxImaginary != ImaginaryMax)
+        {
+            _renderedSize = Size;
+            _renderedMinReal = RealMin;
+            _renderedMaxReal = RealMax;
+            _renderedMinImaginary = ImaginaryMin;
+            _renderedMaxImaginary = ImaginaryMax;
+
+            // What we really want to do in this case is to re-generate the bitmap, then only re-render once the bitmap is ready.
+
+            return true;
+        }
+        return false;
     }
 
     protected override void OnParametersSet()
@@ -107,10 +128,7 @@ public partial class MandelbrotTile
     {
         if (bitmap == null)
         {
-            var raw = await MandelbrotService.CalculateAsync(Size, Size, RealMin, RealMax, ImaginaryMin, ImaginaryMax);
-            int[] heights = MandelbrotService.UnwrapJSObjectAsIntArray(raw);
-
-            Console.WriteLine("Heights array length: " + heights.Length);
+            int[] heights = await MandelbrotService.CalculateAsync(Size, Size, RealMin, RealMax, ImaginaryMin, ImaginaryMax);
 
             SKBitmap tmp = new(Size, Size);
             for (int i = 0; i < Size; i++)
@@ -118,8 +136,8 @@ public partial class MandelbrotTile
                 for (int j = 0; j < Size; j++)
                 {
                     int height = heights?[i * Size + j] ?? 0;
-                    var colour = GetColour(height);
-                    tmp.SetPixel(i, j, new SKColor(colour.r, colour.g, colour.b));
+                    var (r, g, b) = GetColour(height);
+                    tmp.SetPixel(i, j, new SKColor(r, g, b));
                 }
             }
             bitmap = tmp;

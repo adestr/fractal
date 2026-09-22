@@ -13,8 +13,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Scripts\**" />
+    <Content Remove="Scripts\**" />
+    <EmbeddedResource Remove="Scripts\**" />
+    <None Remove="Scripts\**" />
+  </ItemGroup>
+
+  <ItemGroup>
 	<SupportedPlatform Include="WebAssembly" />
-    <Content Include="Scripts\mandelbrot-worker.ts" />
   </ItemGroup>
 
   <ItemGroup>
