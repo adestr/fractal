@@ -19,6 +19,7 @@ interface FractalMessage {
 
 interface MandelbrotMessage extends FractalMessage {
   payload: {
+    requestId: number;
     nr: number;
     ni: number;
     rMin: number;
@@ -40,8 +41,11 @@ self.addEventListener(
       switch (event.data.type) {
         case "mandelbrot":
           const p = event.data.payload;
+          const t = new Date().getTime();
+          console.log(`[${p.requestId}] Sending Mandelbrot calculation request to C# layer`);
           result =
             assemblyExports.Fractal.Workers.MandelbrotCalculation.Calculate(
+              p.requestId,
               p.nr,
               p.ni,
               p.rMin,
@@ -49,6 +53,8 @@ self.addEventListener(
               p.iMin,
               p.iMax,
             );
+          const diff = new Date().getTime() - t;
+          console.log(`[${p.requestId}] Received Mandelbrot calculation response from C# layer in ${diff} ms`);
           break;
 
         default:

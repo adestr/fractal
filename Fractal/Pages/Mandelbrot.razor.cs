@@ -1,3 +1,4 @@
+using Fractal.Components;
 using Microsoft.JSInterop;
 using System.Runtime.Versioning;
 
@@ -28,7 +29,7 @@ public partial class Mandelbrot
 
     private float MaxImaginary { get; set; } = 1.5f;
 
-    private int TileSize { get; set; } = 100;
+    private int TileSize { get; set; } = MandelbrotTile.DefaultTileSize;
 
     private Dimensions ClientSize { get; set; } = new Dimensions { Width = 0, Height = 0 };
 

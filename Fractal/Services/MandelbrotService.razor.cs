@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
 
 namespace Fractal.Services;
@@ -10,11 +11,20 @@ public partial class MandelbrotService
 
     private const string ModuleName = nameof(MandelbrotService);
 
+    private static LazyAsync<JSObject> initOnlyOnce = new(async () =>
+    {
+        Console.WriteLine("[MandelbrotService] Importing JavaScript module for Mandelbrot calculations...");
+        await JSHost.ImportAsync(ModuleName, "/Services/MandelbrotService.razor.js");
+
+        Console.WriteLine($"[{nameof(MandelbrotService)}] Initializing Web Worker for Mandelbrot calculations...");
+        return await InitialiseWorkerAsync();
+    });
+
     public static async Task InitialiseAsync()
     {
         if (!IsInitialized && OperatingSystem.IsBrowser())
         {
-            await JSHost.ImportAsync(ModuleName, "/Services/MandelbrotService.razor.js");
+            await initOnlyOnce.Value;
             IsInitialized = true;
         }
     }
@@ -26,16 +36,28 @@ public partial class MandelbrotService
         await base.OnInitializedAsync();
     }
 
-    public static async Task<int[]> CalculateAsync(int nr,
-        int ni,
-        double rMin,
-        double rMax,
-        double iMin,
-        double iMax
-)
+    private static int counter = 0;
+
+    [JSImport("initializeWorker", ModuleName)]
+    [return: JSMarshalAs<JSType.Promise<JSType.Object>>]
+    internal static partial Task<JSObject> InitialiseWorkerAsync();
+
+    public static async Task<int[]> CalculateAsync(int nr, int ni, double rMin, double rMax, double iMin, double iMax)
     {
-        var jsObject = await Mandelbrot(nr, ni, rMin, rMax, iMin, iMax);
-        return UnwrapJSObjectAsIntArray(jsObject);
+        int batch = counter++;
+        var watch = Stopwatch.StartNew();
+        Console.WriteLine($"[{batch}] Sending request to calculate Mandelbrot heights for range ({rMin} {iMin}i, {rMax} {iMax}i) in {watch.ElapsedMilliseconds} ms");
+
+        var jsObject = await Mandelbrot(batch, nr, ni, rMin, rMax, iMin, iMax);
+        watch.Stop();
+        Console.WriteLine($"[{batch}] Received Mandelbrot heights for range ({rMin} {iMin}i, {rMax} {iMax}i) in {watch.ElapsedMilliseconds} ms");
+
+        var array = UnwrapJSObjectAsByteArray(jsObject);
+        Console.WriteLine($"[{batch}] Unwrapped Mandelbrot heights for range ({rMin} {iMin}i, {rMax} {iMax}i) in {watch.ElapsedMilliseconds} ms");
+
+        var decompressed = Compression.Decompress(array);
+        Console.WriteLine($"[{batch}] Decompressed Mandelbrot heights for range ({rMin} {iMin}i, {rMax} {iMax}i) in {watch.ElapsedMilliseconds} ms");
+        return decompressed;
     }
 
     /// <summary>
@@ -54,6 +76,7 @@ public partial class MandelbrotService
     [JSImport("mandelbrot", ModuleName)]
     [return: JSMarshalAs<JSType.Promise<JSType.Object>>]
     internal static partial Task<JSObject> Mandelbrot(
+        int requestId,
         int nr,
         int ni,
         double rMin,
@@ -62,7 +85,7 @@ public partial class MandelbrotService
         double iMax
     );
 
-    [JSImport("unwrapJsObjectAsIntArray", ModuleName)]
+    [JSImport("unwrapJsObjectAsByteArray", ModuleName)]
     [return: JSMarshalAs<JSType.Array<JSType.Number>>]
-    internal static partial int[] UnwrapJSObjectAsIntArray(JSObject jsObject);
+    internal static partial byte[] UnwrapJSObjectAsByteArray(JSObject jsObject);
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
 
@@ -7,26 +8,31 @@ namespace Fractal.Workers;
 public partial class MandelbrotCalculation
 {
     [JSExport]
-    public static int[] Calculate(int x, int y, float realMin, float realMax, float imaginaryMin, float imaginaryMax)
+    public static byte[] Calculate(int requestId, int x, int y, double realMin, double realMax, double imaginaryMin, double imaginaryMax)
     {
         const int maxIterations = 200;
-        Console.WriteLine($"Calculating Mandelbrot heights for tile of size ({x}, {y}) with real range ({realMin}, {realMax}) and imaginary range ({imaginaryMin}, {imaginaryMax}) with max iterations {maxIterations}");
+        var watch = Stopwatch.StartNew();
+        Console.WriteLine($"[{requestId}] Calculating Mandelbrot heights for tile of size ({x}, {y}) with real range ({realMin}, {realMax}) and imaginary range ({imaginaryMin}, {imaginaryMax}) with max iterations {maxIterations}");
 
         int[] result = new int[x * y];
 
-        float deltaReal = (realMax - realMin) / x;
-        float deltaImaginary = (imaginaryMax - imaginaryMin) / y;
+        double deltaReal = (realMax - realMin) / x;
+        double deltaImaginary = (imaginaryMax - imaginaryMin) / y;
         for (int i = 0; i < x; i++)
         {
             for (int j = 0; j < y; j++)
             {
-                float real = realMin + (i + 0.5f) * deltaReal;
-                float imaginary = imaginaryMin + (j + 0.5f) * deltaImaginary;
+                double real = realMin + (i + 0.5) * deltaReal;
+                double imaginary = imaginaryMin + (j + 0.5) * deltaImaginary;
                 result[i * y + j] = CalculatePoint(real, imaginary, maxIterations);
             }
         }
 
-        return result;
+        var compressed = Compression.Compress(result);
+        Console.WriteLine($"[{requestId}] Compressed Mandelbrot heights from {result.Length * sizeof(int)} bytes to {compressed.Length} bytes");
+        Console.WriteLine($"[{requestId}] Finished calculating Mandelbrot heights for range ({realMin} {imaginaryMin}i, {realMax} {imaginaryMax}i) in {watch.ElapsedMilliseconds} ms");
+
+        return compressed;
     }
 
     /// <summary>

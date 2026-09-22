@@ -9,8 +9,9 @@ namespace Fractal.Components;
 [SupportedOSPlatform("browser")]
 public partial class MandelbrotTile
 {
-    private const int DefaultTileSize = 100;
-    private const int MaxIterations = 100;
+    public const int DefaultTileSize = 100;
+
+    private const int MaxIterations = 200;
 
     SKCanvasView? CanvasView { get; set; }
 
@@ -51,9 +52,6 @@ public partial class MandelbrotTile
     public float ImaginaryMax { get; set; }
     private float _renderedMaxImaginary;
 
-    float pixelWidth;
-    float pixelHeight;
-
     private readonly Dictionary<string, object> attrs = new()
     {
         { "width", DefaultTileSize },
@@ -93,19 +91,12 @@ public partial class MandelbrotTile
         attrs["width"] = Size;
         attrs["height"] = Size;
 
-        pixelWidth = (RealMax - RealMin) / Size;
-        pixelHeight = (ImaginaryMax - ImaginaryMin) / Size;
-
         base.OnParametersSet();
     }
 
     protected override async Task OnInitializedAsync()
     {
         await MandelbrotService.InitialiseAsync();
-
-        // initial pixel sizes (optional — OnParametersSet will also run)
-        pixelWidth = (RealMax - RealMin) / Size;
-        pixelHeight = (ImaginaryMax - ImaginaryMin) / Size;
 
         await base.OnInitializedAsync();
     }
