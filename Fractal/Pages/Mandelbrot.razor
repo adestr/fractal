@@ -3,6 +3,16 @@
 
 <PageTitle>Mandelbrot</PageTitle>
 
+<SectionContent SectionName="page-actions">
+  <button type="button"
+          class="page-action @(_showControls ? "active" : null)"
+          aria-expanded="@_showControls"
+          aria-controls="mandelbrot-controls"
+          @onclick="ToggleControls">
+    Controls
+  </button>
+</SectionContent>
+
 <div id="mandelbrot-tiles">
   @for (int i = 0; i < RowCount; i++)
   {
@@ -10,7 +20,9 @@
       @for (int j = 0; j < ColumnCount; j++)
       {
         var section = Sections[i, j];
-        <MandelbrotTile RealMin="@section.MinReal"
+        <MandelbrotTile @key="@($"{_renderVersion}-{i}-{j}")"
+                        Size="@_appliedTileSize"
+                        RealMin="@section.MinReal"
                         RealMax="@section.MaxReal"
                         ImaginaryMin="@section.MinImaginary"
                         ImaginaryMax="@section.MaxImaginary" />
@@ -18,3 +30,53 @@
     </div>
   }
 </div>
+
+@if (_showControls)
+{
+  <div id="mandelbrot-controls" class="controls-panel" @ref="_panel">
+    <div class="controls-panel-handle" @ref="_handle" title="Drag to move">Controls</div>
+    <form @onsubmit="UpdateViewAsync" @onsubmit:preventDefault>
+      <div class="controls-fields">
+        <label>
+          Real min
+          <input type="number" step="any" @bind="MinReal" @bind:event="oninput" />
+        </label>
+        <label>
+          Real max
+          <input type="number" step="any" @bind="MaxReal" @bind:event="oninput" />
+        </label>
+        <label>
+          Imaginary min
+          <input type="number" step="any" @bind="MinImaginary" @bind:event="oninput" />
+        </label>
+        <label>
+          Imaginary max
+          <input type="number" step="any" @bind="MaxImaginary" @bind:event="oninput" />
+        </label>
+        <label>
+          Iterations (10–1000)
+          <input type="number"
+                 min="@MinIterationLimit"
+                 max="@MaxIterationLimit"
+                 step="1"
+                 @bind="_editIterationLimit"
+                 @bind:event="oninput" />
+        </label>
+        <label>
+          Tile size (px)
+          <input type="number"
+                 min="@MinTileSize"
+                 max="@MaxTileSize"
+                 step="1"
+                 @bind="_editTileSize"
+                 @bind:event="oninput" />
+        </label>
+      </div>
+      @if (_validationMessage is not null)
+      {
+        <p class="controls-message" role="alert">@_validationMessage</p>
+      }
+      <button type="submit" class="update-button">Update</button>
+    </form>
+  </div>
+}

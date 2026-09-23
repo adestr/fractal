@@ -26,6 +26,7 @@ interface MandelbrotMessage extends FractalMessage {
     rMax: number;
     iMin: number;
     iMax: number;
+    maxIterations: number;
   };
 }
 
@@ -52,6 +53,7 @@ self.addEventListener(
               p.rMax,
               p.iMin,
               p.iMax,
+              p.maxIterations,
             );
           const diff = new Date().getTime() - t;
           console.log(`[${p.requestId}] Received Mandelbrot calculation response from C# layer in ${diff} ms`);

@@ -1,0 +1,52 @@
+@page "/settings"
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Settings</PageTitle>
+
+<div class="settings-page">
+  <h1>Settings</h1>
+
+  <h2>Display</h2>
+  <p>
+    High contrast mode removes transparency and blur across the site.
+    Turn this on if glassy surfaces are hard to see.
+  </p>
+  @if (_ready)
+  {
+    <label class="settings-option">
+      <input type="checkbox" checked="@_highContrast" @onchange="OnHighContrastChanged" />
+      <span>High contrast</span>
+    </label>
+  }
+</div>
+
+@code {
+  private IJSObjectReference? _preferences;
+  private bool _highContrast;
+  private bool _ready;
+
+  protected override async Task OnInitializedAsync()
+  {
+    _preferences = await JS.InvokeAsync<IJSObjectReference>("import", "./js/preferences.js");
+    _highContrast = await _preferences.InvokeAsync<bool>("getHighContrast");
+    _ready = true;
+  }
+
+  private async Task OnHighContrastChanged(ChangeEventArgs e)
+  {
+    _highContrast = e.Value is bool enabled && enabled;
+    if (_preferences is not null)
+    {
+      await _preferences.InvokeVoidAsync("setHighContrast", _highContrast);
+    }
+  }
+
+  public async ValueTask DisposeAsync()
+  {
+    if (_preferences is not null)
+    {
+      await _preferences.DisposeAsync();
+    }
+  }
+}

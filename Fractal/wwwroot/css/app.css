@@ -113,3 +113,92 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* High contrast removes glassy transparency and blur across the site. */
+html.high-contrast .top-row,
+html.high-contrast .top-row:has(.nav-scrollable:not(.collapse)) {
+  background-color: #ffffff;
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+html.high-contrast .top-row .navbar-brand,
+html.high-contrast .top-row .nav-item a,
+html.high-contrast .top-row .nav-end .page-action,
+html.high-contrast .top-row .nav-end .settings-link {
+  color: #1a1a1a;
+  text-shadow: none;
+}
+
+html.high-contrast .top-row .nav-item a.active,
+html.high-contrast .top-row .nav-end .page-action.active,
+html.high-contrast .top-row .nav-end .settings-link.active {
+  background-color: #e6e6e6;
+  color: #1a1a1a;
+}
+
+html.high-contrast .top-row .nav-item a:hover,
+html.high-contrast .top-row .nav-end .page-action:hover,
+html.high-contrast .top-row .nav-end .settings-link:hover {
+  background-color: #f0f0f0;
+  color: #1a1a1a;
+}
+
+html.high-contrast .top-row.over-mandelbrot,
+html.high-contrast .top-row.over-mandelbrot:has(.nav-scrollable:not(.collapse)) {
+  background-color: #111111;
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid #ffffff;
+}
+
+html.high-contrast .top-row.over-mandelbrot .navbar-brand,
+html.high-contrast .top-row.over-mandelbrot .nav-item a,
+html.high-contrast .top-row.over-mandelbrot .nav-end .page-action,
+html.high-contrast .top-row.over-mandelbrot .nav-end .settings-link {
+  color: #ffffff;
+  text-shadow: none;
+}
+
+html.high-contrast .top-row.over-mandelbrot .nav-item a.active,
+html.high-contrast .top-row.over-mandelbrot .nav-end .page-action.active,
+html.high-contrast .top-row.over-mandelbrot .nav-end .settings-link.active {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+html.high-contrast .top-row.over-mandelbrot .nav-item a:hover,
+html.high-contrast .top-row.over-mandelbrot .nav-end .page-action:hover,
+html.high-contrast .top-row.over-mandelbrot .nav-end .settings-link:hover {
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+html.high-contrast .controls-panel {
+  background-color: #111111;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+html.high-contrast .controls-panel input[type="number"] {
+  background-color: #000000;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+}
+
+html.high-contrast .controls-panel .update-button {
+  background-color: #ffffff;
+  color: #111111;
+  border: 2px solid #ffffff;
+}
+
+html.high-contrast .controls-panel .controls-message {
+  color: #ffffff;
+}

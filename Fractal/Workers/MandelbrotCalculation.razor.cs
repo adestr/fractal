@@ -1,4 +1,3 @@
-using Fractal.Services;
 using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
@@ -10,10 +9,8 @@ public partial class MandelbrotCalculation
 {
     [JSExport]
     [return: JSMarshalAs<JSType.MemoryView>]
-    public static ArraySegment<int> Calculate(int requestId, int x, int y, double realMin, double realMax, double imaginaryMin, double imaginaryMax)
+    public static ArraySegment<int> Calculate(int requestId, int x, int y, double realMin, double realMax, double imaginaryMin, double imaginaryMax, int maxIterations)
     {
-        int maxIterations = SettingsService.IterationLimit;
-
         var watch = Stopwatch.StartNew();
         Console.WriteLine($"[{requestId}] Calculating Mandelbrot heights for tile of size ({x}, {y}) with real range ({realMin}, {realMax}) and imaginary range ({imaginaryMin}, {imaginaryMax}) with max iterations {maxIterations}");
 

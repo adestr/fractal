@@ -6,3 +6,82 @@
 .mandelbrot-row {
   display: flex;
 }
+
+.controls-panel {
+  position: fixed;
+  top: 4.75rem;
+  right: 1rem;
+  z-index: 1020;
+  width: min(18.5rem, calc(100vw - 2rem));
+  padding: 0.75rem 0.9rem 0.9rem;
+  color: #f7f7f7;
+  background-color: rgba(16, 16, 22, 0.38);
+  backdrop-filter: blur(16px) saturate(1.25);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22);
+}
+
+.controls-panel-handle {
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.75rem;
+}
+
+.controls-panel-handle:active {
+  cursor: grabbing;
+}
+
+.controls-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem 0.7rem;
+}
+
+.controls-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.controls-fields input[type="number"] {
+  width: 100%;
+  color: #fff;
+  color-scheme: dark;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  padding: 0.28rem 0.4rem;
+  font-weight: 400;
+}
+
+.controls-message {
+  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+  color: #ffd2d2;
+}
+
+.update-button {
+  margin-top: 0.85rem;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.update-button:hover {
+  background: rgba(255, 255, 255, 0.26);
+}

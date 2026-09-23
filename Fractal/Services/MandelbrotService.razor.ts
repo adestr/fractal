@@ -91,6 +91,11 @@ const configuration = {
   }
 }
 
+export function refreshSettings() {
+  configuration._iterationLimit = undefined;
+  configuration._tileSize = undefined;
+}
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -194,7 +199,8 @@ export async function mandelbrot(
   const t = new Date().getTime();
   console.log(`[${requestId}] Sending Mandelbrot calculation request to worker`);
 
-  const payload = { requestId, nr, ni, rMin, rMax, iMin, iMax };
+  const limit = configuration.iterationLimit;
+  const payload = { requestId, nr, ni, rMin, rMax, iMin, iMax, maxIterations: limit };
   const response = await sendRequestToWorker({
     type: "mandelbrot",
     payload,
@@ -206,7 +212,6 @@ export async function mandelbrot(
     return;
   }
 
-  const limit = configuration.iterationLimit;
   console.log(`[${requestId}] Iteration threshold: ${limit}`);
 
   var imageArray = new Uint8ClampedArray(response.length * 4);
