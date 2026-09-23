@@ -9,13 +9,11 @@ public partial class MandelbrotTile
 {
     private readonly string ElementId = $"mandelbrot-tile-{Guid.NewGuid()}";
 
-    public const int DefaultTileSize = 100;
-
     /// <summary>
     /// The number of pixels in the width and height of the tile.
     /// </summary>
     [Parameter]
-    public int Size { get; set; } = DefaultTileSize;
+    public int Size { get; set; } = SettingsService.TileSize;
     private int _renderedSize;
 
     /// <summary>
@@ -48,8 +46,8 @@ public partial class MandelbrotTile
 
     private readonly Dictionary<string, object> attrs = new()
     {
-        { "width", DefaultTileSize },
-        { "height", DefaultTileSize }
+        { "width", SettingsService.TileSize },
+        { "height", SettingsService.TileSize }
     };
 
     protected override async Task OnParametersSetAsync()

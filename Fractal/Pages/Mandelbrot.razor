@@ -10,8 +10,7 @@
       @for (int j = 0; j < ColumnCount; j++)
       {
         var section = Sections[i, j];
-        <MandelbrotTile Size="@TileSize"
-                        RealMin="@section.MinReal"
+        <MandelbrotTile RealMin="@section.MinReal"
                         RealMax="@section.MaxReal"
                         ImaginaryMin="@section.MinImaginary"
                         ImaginaryMax="@section.MaxImaginary" />

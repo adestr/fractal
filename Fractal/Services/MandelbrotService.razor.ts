@@ -54,6 +54,46 @@ const state = {
   }),
 };
 
+/* ========================================================================= */
+/*  Fetching configuration values, e.g. tile size                            */
+/* ------------------------------------------------------------------------- */
+
+// @ts-ignore
+import { dotnet } from "/_framework/dotnet.js";
+
+let assemblyExports: any;
+let startupError: any;
+
+try {
+  const { getAssemblyExports, getConfig } = await dotnet.create();
+  const config = getConfig();
+  assemblyExports = await getAssemblyExports(config.mainAssemblyName);
+} catch (err) {
+  startupError = err;
+}
+
+const configuration = {
+  _tileSize: undefined as number | undefined,
+  get tileSize(): number {
+    if (!this._tileSize) {
+      this._tileSize = assemblyExports.Fractal.Services.SettingsService.GetTileSize();
+    }
+    return this._tileSize || 100;
+  },
+
+  _iterationLimit: undefined as number | undefined,
+  get iterationLimit(): number {
+    if (!this._iterationLimit) {
+      this._iterationLimit = assemblyExports.Fractal.Services.SettingsService.GetIterationLimit();
+      console.log("Iteration count fetched from .NET:", this._iterationLimit);
+    }
+    return this._iterationLimit || 250;
+  }
+}
+
+
+/* ------------------------------------------------------------------------- */
+
 const pendingRequests: any = {};
 let pendingRequestId = 0;
 
@@ -166,12 +206,14 @@ export async function mandelbrot(
     return;
   }
 
-  const limit = 200;
+  const limit = configuration.iterationLimit;
+  console.log(`[${requestId}] Iteration threshold: ${limit}`);
 
   var imageArray = new Uint8ClampedArray(response.length * 4);
   for (let i = 0; i < response.length; i++) {
     const h = response[i];
-    const t = (limit - 1.0 * h) / limit;
+    // const t = (limit - 1.0 * h) / limit;
+    const t = (1.0 * h) / limit;
     const [r, g, b, a] = h === limit ? [0, 0, 0, 255] : getColour(t);
     imageArray.set([r, g, b, a], i * 4);
   }
@@ -186,7 +228,8 @@ export async function mandelbrot(
 }
 
 function getColour(t: number) {
-  const amplification = t < 0.9 ? 255 : 255 * Math.pow((1.0 - t) / 0.1, 2);
+  // const amplification = t < 0.9 ? 255 : 255 * Math.pow((1.0 - t) / 0.1, 2);
+  const amplification = t > 0.1 ? 255 : 255 * Math.pow(t / 0.1, 2);
 
   const r = 0.5 + 0.5 * Math.cos(2 * Math.PI * (1.0 * t + 0.00))
   const g = 0.5 + 0.5 * Math.cos(2 * Math.PI * (1.0 * t + 0.33))
