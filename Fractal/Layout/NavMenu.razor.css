@@ -1,14 +1,49 @@
 .navbar-toggler {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .top-row {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1030;
   min-height: 3.5rem;
-  background-color: rgba(0,0,0,0.4);
+  background-color: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.navbar-brand {
+.top-row.over-mandelbrot {
+  background-color: transparent;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.42) 0%,
+    rgba(0, 0, 0, 0.1) 72%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border-bottom-color: transparent;
+}
+
+.top-row .navbar-brand {
   font-size: 1.1rem;
+  color: #212529;
+}
+
+.over-mandelbrot .navbar-brand {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+.navbar-toggler-icon {
+  filter: invert(1);
+}
+
+.over-mandelbrot .navbar-toggler-icon {
+  filter: none;
 }
 
 .bi {
@@ -46,8 +81,8 @@
   padding-right: 1rem;
 }
 
-.nav-item ::deep a {
-  color: #d7d7d7;
+.top-row .nav-item ::deep a {
+  color: #343a40;
   border-radius: 4px;
   height: 2.5rem;
   display: flex;
@@ -55,14 +90,43 @@
   line-height: 2.5rem;
 }
 
-.nav-item ::deep a.active {
-  background-color: rgba(255,255,255,0.37);
-  color: white;
+.top-row .nav-item ::deep a.active {
+  background-color: rgba(0, 0, 0, 0.08);
+  color: #212529;
 }
 
-.nav-item ::deep a:hover {
-  background-color: rgba(255,255,255,0.1);
-  color: white;
+.top-row .nav-item ::deep a:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #212529;
+}
+
+.top-row.over-mandelbrot .nav-item ::deep a {
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+.top-row.over-mandelbrot .nav-item ::deep a.active {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.top-row.over-mandelbrot .nav-item ::deep a:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+@media (max-width: 640.98px) {
+  .top-row:has(.nav-scrollable:not(.collapse)) {
+    background-color: rgba(255, 255, 255, 0.9);
+    background-image: none;
+  }
+
+  .top-row.over-mandelbrot:has(.nav-scrollable:not(.collapse)) {
+    background-color: rgba(0, 0, 0, 0.55);
+    background-image: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 }
 
 @media (min-width: 641px) {

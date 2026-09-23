@@ -1,5 +1,6 @@
 ﻿#mandelbrot-tiles {
   flex: 1;
+  min-height: 100vh;
 }
 
 .mandelbrot-row {
