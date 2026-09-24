@@ -1,4 +1,3 @@
-using Fractal.Services;
 using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
@@ -10,10 +9,8 @@ public partial class MandelbrotCalculation
 {
     [JSExport]
     [return: JSMarshalAs<JSType.MemoryView>]
-    public static ArraySegment<int> Calculate(int requestId, int x, int y, double realMin, double realMax, double imaginaryMin, double imaginaryMax)
+    public static ArraySegment<int> Calculate(int requestId, int x, int y, double realMin, double realMax, double imaginaryMin, double imaginaryMax, int maxIterations)
     {
-        int maxIterations = SettingsService.IterationLimit;
-
         var watch = Stopwatch.StartNew();
         Console.WriteLine($"[{requestId}] Calculating Mandelbrot heights for tile of size ({x}, {y}) with real range ({realMin}, {realMax}) and imaginary range ({imaginaryMin}, {imaginaryMax}) with max iterations {maxIterations}");
 
@@ -37,6 +34,66 @@ public partial class MandelbrotCalculation
 
         // TODO: Return as ArraySegment<int> instead of int[] to avoid copying the array when returning to JS
         //return result;
+        return new ArraySegment<int>(result);
+    }
+
+    /// <summary>
+    /// Calculates one horizontal strip of a tile so the worker can stop between strips when a zoom cancels the request.
+    /// </summary>
+    [JSExport]
+    [return: JSMarshalAs<JSType.MemoryView>]
+    public static ArraySegment<int> CalculateStrip(int requestId, int x, int y, int rowStart, int rowCount, double realMin, double realMax, double imaginaryMin, double imaginaryMax, int maxIterations)
+    {
+        if (x < 0)
+        {
+            x = 0;
+        }
+
+        if (y < 0)
+        {
+            y = 0;
+        }
+
+        if (rowStart < 0)
+        {
+            rowStart = 0;
+        }
+
+        if (rowStart > y)
+        {
+            rowStart = y;
+        }
+
+        if (rowCount < 0)
+        {
+            rowCount = 0;
+        }
+
+        if (rowStart + rowCount > y)
+        {
+            rowCount = y - rowStart;
+        }
+
+        var result = new int[x * rowCount];
+        if (x == 0 || y == 0 || rowCount == 0)
+        {
+            return new ArraySegment<int>(result);
+        }
+
+        double deltaReal = (realMax - realMin) / x;
+        double deltaImaginary = (imaginaryMax - imaginaryMin) / y;
+        for (int j = 0; j < rowCount; j++)
+        {
+            int row = rowStart + j;
+            double imaginary = imaginaryMin + (row + 0.5) * deltaImaginary;
+            int rowOffset = x * j;
+            for (int i = 0; i < x; i++)
+            {
+                double real = realMin + (i + 0.5) * deltaReal;
+                result[rowOffset + i] = CalculatePoint(real, imaginary, maxIterations);
+            }
+        }
+
         return new ArraySegment<int>(result);
     }
 

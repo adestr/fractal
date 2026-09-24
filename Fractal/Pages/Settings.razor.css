@@ -1,0 +1,32 @@
+.settings-page {
+  max-width: 40rem;
+  padding: 1.25rem 1.5rem 2rem;
+}
+
+.settings-page h1 {
+  font-size: 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.settings-page h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.settings-page p {
+  margin-bottom: 0.75rem;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-option input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+}
