@@ -99,27 +99,55 @@ export function refreshSettings() {
 
 /* ------------------------------------------------------------------------- */
 
-const pendingRequests: any = {};
+const pendingRequests: Record<number, { resolve: (value: Int32Array) => void, reject: (reason?: unknown) => void, generation: number }> = {};
 let pendingRequestId = 0;
+let renderGeneration = 0;
 
 const workerCount = navigator.hardwareConcurrency || 4;
 let workers: Worker[] = [];
 
-function sendRequestToWorker(request: any): Promise<Int32Array> {
+function cancelledError() {
+  return new DOMException("Cancelled", "AbortError");
+}
+
+export function cancelRenders() {
+  renderGeneration++;
+  const generation = renderGeneration;
+  for (const id of Object.keys(pendingRequests)) {
+    const pending = pendingRequests[Number(id)];
+    delete pendingRequests[Number(id)];
+    pending?.reject(cancelledError());
+  }
+
+  for (const worker of workers) {
+    worker.postMessage({ type: "cancel", generation });
+  }
+}
+
+(globalThis as typeof globalThis & { __fractalCancelRenders?: () => void }).__fractalCancelRenders = cancelRenders;
+
+function sendRequestToWorker(request: { type: string, payload: unknown }, generation = renderGeneration): Promise<Int32Array> {
+  if (generation !== renderGeneration) {
+    return Promise.reject(cancelledError());
+  }
+
   pendingRequestId++;
+  const requestId = pendingRequestId;
   const promise = new Promise<Int32Array>((resolve, reject) => {
-    pendingRequests[pendingRequestId] = { resolve, reject };
+    pendingRequests[requestId] = { resolve, reject, generation };
   });
 
-  const workerIndex = pendingRequestId % workers.length;
-  const worker = workers[workerIndex];
+  const workerIndex = workers.length === 0 ? -1 : requestId % workers.length;
+  const worker = workerIndex >= 0 ? workers[workerIndex] : undefined;
 
-  if (!state.workers[workerIndex].ready) {
-    request.reject(new Error("Worker is not ready"));
-    delete pendingRequests[pendingRequestId];
-  } else {
-    worker.postMessage({ ...request, requestId: pendingRequestId });
+  if (!worker || !state.workers[workerIndex]?.ready) {
+    const pending = pendingRequests[requestId];
+    delete pendingRequests[requestId];
+    pending.reject(new Error("Worker is not ready"));
+    return promise;
   }
+
+  worker.postMessage({ ...request, requestId, generation });
   return promise;
 }
 
@@ -131,17 +159,42 @@ const createMessageHandler = (i) => (e: MessageEvent) => {
       }
       break;
 
-    case "success":
+    case "success": {
       const request = pendingRequests[e.data.requestId];
       delete pendingRequests[e.data.requestId];
+      if (!request || request.generation !== renderGeneration) {
+        request?.reject(cancelledError());
+        return;
+      }
+
       if (e.data.error) {
         request.reject(new Error(e.data.error));
       } else {
         request.resolve(e.data.result);
       }
       break;
+    }
+
+    case "cancelled":
+    case "error": {
+      const request = pendingRequests[e.data.requestId];
+      delete pendingRequests[e.data.requestId];
+      if (!request) {
+        return;
+      }
+
+      request.reject(e.data.status === "cancelled" ? cancelledError() : new Error(e.data.error || "Mandelbrot calculation failed"));
+      break;
+    }
 
     default:
+      if (e.data?.requestId !== undefined && pendingRequests[e.data.requestId]) {
+        const request = pendingRequests[e.data.requestId];
+        delete pendingRequests[e.data.requestId];
+        request.reject(new Error(e.data.error || "Mandelbrot calculation failed"));
+        return;
+      }
+
       console.log("Worker said:", e.data);
   }
 }
@@ -184,16 +237,24 @@ export async function mandelbrot(
   iMin: number,
   iMax: number,
 ) {
-  const workerIndex = requestId % workers.length;
-  const worker = workers[workerIndex];
-
-  if (!worker) {
-    console.error("You must call initializeWorker() before calling mandelbrot()");
+  const generationAtStart = renderGeneration;
+  if (workers.length === 0) {
+    throw new Error("You must call initializeWorker() before calling mandelbrot()");
   }
 
-  if (!state.workers[workerIndex].ready) {
+  const workerIndex = requestId % workers.length;
+  if (!state.workers[workerIndex]?.ready) {
     console.log("Worker is not ready, waiting...");
     await state.allWorkersReady();
+  }
+
+  if (generationAtStart !== renderGeneration) {
+    throw new DOMException("Cancelled", "AbortError");
+  }
+
+  const existing = document.getElementById(elementId);
+  if (existing) {
+    delete existing.dataset.painted;
   }
 
   const t = new Date().getTime();
@@ -204,12 +265,11 @@ export async function mandelbrot(
   const response = await sendRequestToWorker({
     type: "mandelbrot",
     payload,
-  });
+  }, generationAtStart);
 
-  const elem = document.getElementById(elementId);
+  const elem = document.getElementById(elementId) as HTMLCanvasElement | null;
   if (!elem) {
-    console.error(`Element with ID ${elementId} not found`);
-    return;
+    throw new DOMException("Cancelled", "AbortError");
   }
 
   console.log(`[${requestId}] Iteration threshold: ${limit}`);
@@ -223,8 +283,9 @@ export async function mandelbrot(
     imageArray.set([r, g, b, a], i * 4);
   }
 
-  var x = new Int32Array(response.buffer);
-    (elem as HTMLCanvasElement).getContext("2d")?.putImageData(new ImageData(imageArray, nr, ni), 0, 0);
+  elem.getContext("2d")?.putImageData(new ImageData(imageArray, nr, ni), 0, 0);
+  elem.dataset.painted = "true";
+  document.dispatchEvent(new CustomEvent("mandelbrot-tile-painted"));
 
   const diff = new Date().getTime() - t;
   console.log(`[${requestId}] Received Mandelbrot calculation response from worker in ${diff} ms`, response);

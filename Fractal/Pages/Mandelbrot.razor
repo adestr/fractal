@@ -13,22 +13,23 @@
   </button>
 </SectionContent>
 
-<div id="mandelbrot-tiles">
-  @for (int i = 0; i < RowCount; i++)
-  {
-    <div class="mandelbrot-row">
-      @for (int j = 0; j < ColumnCount; j++)
+<div id="mandelbrot-tiles" @ref="_viewport">
+  <div class="mandelbrot-stage" @ref="_stage">
+    <canvas class="zoom-snapshot" @ref="_snapshot" style="@SnapshotStyle" aria-hidden="true"></canvas>
+    <div class="tile-layer">
+      @foreach (var tile in _tiles)
       {
-        var section = Sections[i, j];
-        <MandelbrotTile @key="@($"{_renderVersion}-{i}-{j}")"
-                        Size="@_appliedTileSize"
-                        RealMin="@section.MinReal"
-                        RealMax="@section.MaxReal"
-                        ImaginaryMin="@section.MinImaginary"
-                        ImaginaryMax="@section.MaxImaginary" />
+        <div class="tile-slot" @key="tile.Key" style="@TileStyle(tile)">
+          <MandelbrotTile @key="tile.Key"
+                          Size="@_appliedTileSize"
+                          RealMin="@tile.MinReal"
+                          RealMax="@tile.MaxReal"
+                          ImaginaryMin="@tile.MinImaginary"
+                          ImaginaryMax="@tile.MaxImaginary" />
+        </div>
       }
     </div>
-  }
+  </div>
 </div>
 
 @if (_showControls)

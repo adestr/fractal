@@ -1,5 +1,6 @@
 ﻿using Fractal.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using System.Runtime.Versioning;
 
 namespace Fractal.Components;
@@ -20,29 +21,31 @@ public partial class MandelbrotTile
     /// The real part (x-axis) minimum value of the Mandelbrot set to render.
     /// </summary>
     [Parameter]
-    public float RealMin { get; set; }
-    private float _renderedMinReal;
+    public double RealMin { get; set; }
+    private double _renderedMinReal;
 
     /// <summary>
     /// The real part (x-axis) maximum value of the Mandelbrot set to render.
     /// </summary>
     [Parameter]
-    public float RealMax { get; set; }
-    private float _renderedMaxReal;
+    public double RealMax { get; set; }
+    private double _renderedMaxReal;
 
     /// <summary>
     /// The imaginary part (y-axis) minimum value of the Mandelbrot set to render.
     /// </summary>
     [Parameter]
-    public float ImaginaryMin { get; set; }
-    private float _renderedMinImaginary;
+    public double ImaginaryMin { get; set; }
+    private double _renderedMinImaginary;
 
     /// <summary>
     /// The imaginary part (y-axis) maximum value of the Mandelbrot set to render.
     /// </summary>
     [Parameter]
-    public float ImaginaryMax { get; set; }
-    private float _renderedMaxImaginary;
+    public double ImaginaryMax { get; set; }
+    private double _renderedMaxImaginary;
+
+    private bool _renderRequested;
 
     private readonly Dictionary<string, object> attrs = new()
     {
@@ -50,18 +53,13 @@ public partial class MandelbrotTile
         { "height", SettingsService.TileSize }
     };
 
-    protected override async Task OnParametersSetAsync()
-    {
-        if ((RealMin != default || RealMax != default) && (ImaginaryMin != default || ImaginaryMax != default))
-        {
-            await RenderTileAsync();
-        }
+    protected override bool ShouldRender() => _renderRequested;
 
-        await base.OnParametersSetAsync();
-    }
-
-    protected override bool ShouldRender()
+    protected override void OnParametersSet()
     {
+        attrs["width"] = Size;
+        attrs["height"] = Size;
+
         if (_renderedSize != Size || _renderedMinReal != RealMin || _renderedMaxReal != RealMax || _renderedMinImaginary != ImaginaryMin || _renderedMaxImaginary != ImaginaryMax)
         {
             _renderedSize = Size;
@@ -69,21 +67,24 @@ public partial class MandelbrotTile
             _renderedMaxReal = RealMax;
             _renderedMinImaginary = ImaginaryMin;
             _renderedMaxImaginary = ImaginaryMax;
-
-            // What we really want to do in this case is to re-generate the bitmap, then only re-render once the bitmap is ready.
-
-            return true;
+            _renderRequested = true;
         }
-        return false;
-    }
-
-    protected override void OnParametersSet()
-    {
-        // update attributes and pixel size whenever parameters change
-        attrs["width"] = Size;
-        attrs["height"] = Size;
 
         base.OnParametersSet();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_renderRequested)
+        {
+            _renderRequested = false;
+            if (Size > 0 && RealMax > RealMin && ImaginaryMax > ImaginaryMin)
+            {
+                await RenderTileAsync();
+            }
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     protected override async Task OnInitializedAsync()
@@ -95,6 +96,16 @@ public partial class MandelbrotTile
 
     private async Task RenderTileAsync()
     {
-        await MandelbrotService.CalculateAsync(ElementId, Size, Size, RealMin, RealMax, ImaginaryMin, ImaginaryMax);
+        try
+        {
+            await MandelbrotService.CalculateAsync(ElementId, Size, Size, RealMin, RealMax, ImaginaryMin, ImaginaryMax);
+        }
+        catch (JSException ex) when (IsCancellation(ex))
+        {
+        }
     }
+
+    private static bool IsCancellation(JSException ex)
+        => ex.Message.Contains("AbortError", StringComparison.OrdinalIgnoreCase)
+           || ex.Message.Contains("Cancelled", StringComparison.OrdinalIgnoreCase);
 }

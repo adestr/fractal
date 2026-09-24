@@ -1,10 +1,54 @@
 ﻿#mandelbrot-tiles {
-  flex: 1;
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: grab;
+  overscroll-behavior: none;
 }
 
-.mandelbrot-row {
-  display: flex;
+#mandelbrot-tiles.is-panning {
+  cursor: grabbing;
+}
+
+#mandelbrot-tiles.is-settling .tile-layer {
+  visibility: hidden;
+}
+
+.mandelbrot-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.zoom-snapshot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.tile-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.tile-slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 0;
+}
+
+#mandelbrot-tiles ::deep canvas.mandelbrot-tile {
+  display: block;
 }
 
 .controls-panel {

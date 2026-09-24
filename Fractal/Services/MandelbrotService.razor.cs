@@ -42,6 +42,20 @@ public partial class MandelbrotService
     [return: JSMarshalAs<JSType.Promise<JSType.Object>>]
     internal static partial Task<JSObject> InitialiseWorkerAsync();
 
+    [JSImport("cancelRenders", ModuleName)]
+    internal static partial void CancelRenders();
+
+    public static async Task CancelAsync()
+    {
+        if (!OperatingSystem.IsBrowser())
+        {
+            return;
+        }
+
+        await initOnlyOnce.Value;
+        CancelRenders();
+    }
+
     public static async Task<int[]> CalculateAsync(string elementId, int nr, int ni, double rMin, double rMax, double iMin, double iMax)
     {
         int batch = counter++;

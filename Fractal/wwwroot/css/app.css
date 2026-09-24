@@ -2,6 +2,13 @@ html, body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+html.mandelbrot-view,
+html.mandelbrot-view body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 h1:focus {
   outline: none;
 }
