@@ -1,0 +1,13 @@
+.wrapper {
+  width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.subtitle {
+  display: block;
+  font-size: 0.875rem;
+  opacity: 0.75;
+  margin-top: -0.75rem;
+  margin-bottom: 1rem;
+}
